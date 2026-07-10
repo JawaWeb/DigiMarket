@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigiMarket — Админ-панель</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(18,18,30,0.7);
+            --glass-border: rgba(255,255,255,0.08);
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b8;
+            --accent-cyan: #00f0ff;
+            --accent-purple: #b44dff;
+            --accent-pink: #ff2d95;
+            --gradient-1: linear-gradient(135deg, #00f0ff 0%, #b44dff 50%, #ff2d95 100%);
+            --font-primary: 'Inter', sans-serif;
+            --font-display: 'Space Grotesk', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-primary);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ЛЕВАЯ ПАНЕЛЬ */
+        .sidebar {
+            width: 350px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        .sidebar-header h1 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-header p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+        }
+
+        .nav-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .nav-section h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.3rem;
+            text-align: left;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+        }
+
+        .nav-btn .icon { font-size: 1.2rem; width: 24px; text-align: center; }
+
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn:hover { border-color: var(--accent-cyan); background: rgba(0,240,255,0.05); }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover { opacity: 0.9; box-shadow: 0 0 20px rgba(0,240,255,0.3); }
+
+        .btn-danger {
+            background: transparent;
+            border-color: var(--accent-pink);
+            color: var(--accent-pink);
+        }
+
+        .btn-danger:hover { background: rgba(255,45,149,0.1); }
+
+        /* ПРАВАЯ ОБЛАСТЬ */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .toolbar h2 { font-size: 1.2rem; }
+
+        .content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.3; }
+
+        /* МОДАЛЬНОЕ ОКНО */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .modal h2 { font-family: var(--font-display); margin-bottom: 1.5rem; text-align: center; }
+
+        .form-group { margin-bottom: 1rem; }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+        /* СПИСОК ЭЛЕМЕНТОВ */
+        .item-list { display: flex; flex-direction: column; gap: 0.8rem; }
+
+        .item-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            transition: all 0.2s;
+        }
+
+        .item-card:hover { border-color: var(--accent-cyan); }
+
+        .item-icon { font-size: 2rem; }
+
+        .item-info { flex: 1; }
+
+        .item-info h4 { font-weight: 600; }
+
+        .item-info p { color: var(--text-secondary); font-size: 0.85rem; }
+
+        .item-actions { display: flex; gap: 0.5rem; }
+
+        .icon-btn-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .icon-btn-sm:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+        .icon-btn-sm.danger:hover { border-color: var(--accent-pink); color: var(--accent-pink); background: rgba(255,45,149,0.1); }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent-cyan);
+            color: #000;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 2000;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,240,255,0.4);
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <!-- Левая панель навигации -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>⚡ DigiMarket Admin</h1>
+            <p>Панель управления сайтом</p>
+        </div>
+
+        <div class="nav-section">
+            <h3>📝 Контент</h3>
+            <button class="nav-btn" onclick="showTextEditor()">
+                <span class="icon">✏️</span> Редактировать тексты
+            </button>
+        </div>
+
+        <div class="nav-section">
+            <h3>📦 Товары</h3>
+            <button class="nav-btn" onclick="addProduct()">
+                <span class="icon">➕</span> Добавить товар
+            </button>
+            <button class="nav-btn" onclick="showProducts()">
+                <span class="icon">📋</span> Все товары
+            </button>
+        </div>
+
+        <div class="nav-section">
+            <h3>📁 Категории</h3>
+            <button class="nav-btn" onclick="addCategory()">
+                <span class="icon">➕</span> Добавить категорию
+            </button>
+            <button class="nav-btn" onclick="showCategories()">
+                <span class="icon">📋</span> Все категории
+            </button>
+        </div>
+
+        <div class="nav-section">
+            <h3>💾 Данные</h3>
+            <button class="nav-btn" onclick="exportData()">
+                <span class="icon">📤</span> Экспорт данных
+            </button>
+            <button class="nav-btn" onclick="importData()">
+                <span class="icon">📥</span> Импорт данных
+            </button>
+            <button class="nav-btn btn-danger" onclick="resetData()" style="border-color:var(--accent-pink);color:var(--accent-pink)">
+                <span class="icon">⚠️</span> Сбросить всё
+            </button>
+        </div>
+    </div>
+
+    <!-- Правая область -->
+    <div class="main">
+        <div class="toolbar">
+            <h2 id="toolbarTitle">Выберите действие</h2>
+        </div>
+        <div class="content" id="contentArea">
+            <div class="empty-state">
+                <i class="fas fa-hand-pointer"></i>
+                <h3>Выберите раздел слева</h3>
+                <p>Используйте боковое меню для управления сайтом</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal" id="modalContent"></div>
+    </div>
+
+    <!-- Тосты -->
+    <div id="toastContainer"></div>
+
+    <script>
+        // ============ ДАННЫЕ ============
+        const DEFAULT_DATA = {
+            heroTitle: 'Тысячи цифровых продуктов в одном месте.',
+            heroSubtitle: 'Шаблоны сайтов, AI, программы, книги, гайды и многое другое.',
+            footerDesc: 'Маркетплейс цифровых товаров с мгновенной доставкой.',
+            copyright: '© 2026 DigiMarket. Все права защищены.',
+            categories: [
+                { key: 'website-templates', name: 'Шаблоны сайтов', icon: '🌐' },
+                { key: 'ai-prompts', name: 'AI-промпты', icon: '🤖' },
+                { key: 'ebooks', name: 'Электронные книги', icon: '📚' },
+                { key: 'checklists', name: 'Чек-листы и гайды', icon: '📄' },
+                { key: 'software', name: 'Программы и скрипты', icon: '💻' },
+                { key: 'graphic-templates', name: 'Графические шаблоны', icon: '🎨' },
+                { key: 'notion', name: 'Excel / Notion', icon: '📊' },
+                { key: '3d-models', name: '3D модели', icon: '🧩' },
+                { key: 'video-templates', name: 'Видео шаблоны', icon: '🎬' },
+                { key: 'music', name: 'Музыка и звуки', icon: '🎵' },
+                { key: 'presets', name: 'Пресеты Lightroom', icon: '📷' },
+                { key: 'icons', name: 'Иконки', icon: '🖌️' }
+            ],
+            products: [],
+            socialLinks: [
+                { name: 'TikTok', icon: 'fa-tiktok', url: 'https://tiktok.com' },
+                { name: 'Instagram', icon: 'fa-instagram', url: 'https://instagram.com' },
+                { name: 'Telegram', icon: 'fa-telegram-plane', url: 'https://t.me/digimarket' }
+            ],
+            paymentMethods: ['fa-cc-visa', 'fa-cc-mastercard', 'fa-paypal', 'fa-bitcoin']
+        };
+
+        let siteData = {};
+
+        function loadData() {
+            const saved = localStorage.getItem('digimarket_admin_data');
+            if (saved) {
+                try { siteData = JSON.parse(saved); } catch (e) { siteData = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
+            } else {
+                siteData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('digimarket_admin_data', JSON.stringify(siteData));
+            showToast('✅ Данные сохранены');
+        }
+
+        function resetData() {
+            if (confirm('ВНИМАНИЕ! Все данные будут удалены и восстановлены по умолчанию. Продолжить?')) {
+                siteData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                saveData();
+                document.getElementById('contentArea').innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><h3>Данные сброшены</h3></div>';
+            }
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(siteData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'digimarket_backup_' + new Date().toISOString().slice(0,10) + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('💾 Данные экспортированы');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        siteData = JSON.parse(event.target.result);
+                        saveData();
+                        showToast('📥 Данные импортированы');
+                        document.getElementById('contentArea').innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><h3>Импорт завершён</h3></div>';
+                    } catch (err) {
+                        showToast('❌ Ошибка импорта');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // ============ МОДАЛЬНОЕ ОКНО ============
+        function openModal(title, content) {
+            document.getElementById('modalContent').innerHTML = `<h2>${title}</h2>${content}`;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ============ ТЕКСТЫ ============
+        function showTextEditor() {
+            document.getElementById('toolbarTitle').textContent = '✏️ Редактирование текстов';
+            document.getElementById('contentArea').innerHTML = `
+                <div class="form-group">
+                    <label>Заголовок Hero</label>
+                    <input type="text" value="${escapeHtml(siteData.heroTitle)}" onchange="siteData.heroTitle=this.value">
+                </div>
+                <div class="form-group">
+                    <label>Подзаголовок Hero</label>
+                    <input type="text" value="${escapeHtml(siteData.heroSubtitle)}" onchange="siteData.heroSubtitle=this.value">
+                </div>
+                <div class="form-group">
+                    <label>Описание в подвале</label>
+                    <textarea onchange="siteData.footerDesc=this.value" rows="3">${escapeHtml(siteData.footerDesc)}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Копирайт</label>
+                    <input type="text" value="${escapeHtml(siteData.copyright)}" onchange="siteData.copyright=this.value">
+                </div>
+                <button class="btn btn-primary" onclick="saveData()">💾 Сохранить</button>
+            `;
+        }
+
+        // ============ ТОВАРЫ ============
+        function showProducts() {
+            document.getElementById('toolbarTitle').textContent = '📦 Все товары';
+            if (siteData.products.length === 0) {
+                document.getElementById('contentArea').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <h3>Нет товаров</h3>
+                        <p>Добавьте первый товар</p>
+                        <button class="btn btn-primary" onclick="addProduct()" style="margin-top:1rem">➕ Добавить товар</button>
+                    </div>
+                `;
+                return;
+            }
+            document.getElementById('contentArea').innerHTML = `
+                <div class="item-list">
+                    ${siteData.products.map((p, i) => `
+                        <div class="item-card">
+                            <div class="item-icon">${p.emoji || '📦'}</div>
+                            <div class="item-info">
+                                <h4>${escapeHtml(p.name)}</h4>
+                                <p>$${p.price} | ${p.category} ${p.badge ? '| ' + p.badge : ''}</p>
+                            </div>
+                            <div class="item-actions">
+                                <button class="icon-btn-sm" onclick="editProduct(${i})" title="Редактировать"><i class="fas fa-pen"></i></button>
+                                <button class="icon-btn-sm danger" onclick="deleteProduct(${i})" title="Удалить"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="btn btn-primary" onclick="addProduct()" style="margin-top:1rem">➕ Добавить товар</button>
+            `;
+        }
+
+        function addProduct() {
+            openModal('➕ Добавить товар', `
+                <div class="form-group"><label>Название</label><input type="text" id="pName" placeholder="Название товара"></div>
+                <div class="form-group"><label>Категория</label><select id="pCategory">${siteData.categories.map(c => `<option value="${c.key}">${c.icon} ${c.name}</option>`).join('')}</select></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Цена (USD)</label><input type="number" id="pPrice" placeholder="29.99" step="0.01"></div>
+                    <div class="form-group"><label>Эмодзи</label><input type="text" id="pEmoji" placeholder="🌐" maxlength="2"></div>
+                </div>
+                <div class="form-group"><label>Бейдж</label><select id="pBadge"><option value="">Нет</option><option value="NEW">NEW</option><option value="HOT">HOT</option><option value="SALE">SALE</option></select></div>
+                <div class="form-group"><label>Краткое описание</label><input type="text" id="pDesc" placeholder="Краткое описание"></div>
+                <div class="form-group"><label>Полное описание</label><textarea id="pFullDesc" rows="3" placeholder="Полное описание"></textarea></div>
+                <div class="form-group"><label>Изображение (файл)</label><input type="file" id="pImageFile" accept="image/*" onchange="previewImage()"><input type="hidden" id="pImageUrl"></div>
+                <div id="imagePreview" style="text-align:center;margin-bottom:1rem"></div>
+                <button class="btn btn-primary" onclick="saveProduct()" style="width:100%">Добавить товар</button>
+                <button class="btn" onclick="closeModal()" style="width:100%;margin-top:0.5rem">Отмена</button>
+            `);
+        }
+
+        function previewImage() {
+            const file = document.getElementById('pImageFile')?.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('pImageUrl').value = e.target.result;
+                    document.getElementById('imagePreview').innerHTML = `<img src="${e.target.result}" style="max-width:200px;border-radius:12px">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveProduct() {
+            const product = {
+                id: 'prod_' + Date.now(),
+                name: document.getElementById('pName')?.value || '',
+                category: document.getElementById('pCategory')?.value || '',
+                price: parseFloat(document.getElementById('pPrice')?.value) || 0,
+                emoji: document.getElementById('pEmoji')?.value || '📦',
+                badge: document.getElementById('pBadge')?.value || '',
+                description: document.getElementById('pDesc')?.value || '',
+                fullDescription: document.getElementById('pFullDesc')?.value || '',
+                image: document.getElementById('pImageUrl')?.value || ''
+            };
+            if (!product.name) { showToast('❌ Введите название'); return; }
+            siteData.products.push(product);
+            saveData();
+            closeModal();
+            showProducts();
+            showToast('✅ Товар добавлен');
+        }
+
+        function editProduct(index) {
+            const p = siteData.products[index];
+            openModal('✏️ Редактировать товар', `
+                <div class="form-group"><label>Название</label><input type="text" id="pName" value="${escapeHtml(p.name)}"></div>
+                <div class="form-group"><label>Категория</label><select id="pCategory">${siteData.categories.map(c => `<option value="${c.key}" ${p.category === c.key ? 'selected' : ''}>${c.icon} ${c.name}</option>`).join('')}</select></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Цена</label><input type="number" id="pPrice" value="${p.price}" step="0.01"></div>
+                    <div class="form-group"><label>Эмодзи</label><input type="text" id="pEmoji" value="${p.emoji || ''}" maxlength="2"></div>
+                </div>
+                <div class="form-group"><label>Бейдж</label><select id="pBadge"><option value="">Нет</option><option value="NEW" ${p.badge==='NEW'?'selected':''}>NEW</option><option value="HOT" ${p.badge==='HOT'?'selected':''}>HOT</option><option value="SALE" ${p.badge==='SALE'?'selected':''}>SALE</option></select></div>
+                <div class="form-group"><label>Краткое описание</label><input type="text" id="pDesc" value="${escapeHtml(p.description || '')}"></div>
+                <div class="form-group"><label>Полное описание</label><textarea id="pFullDesc" rows="3">${escapeHtml(p.fullDescription || '')}</textarea></div>
+                <button class="btn btn-primary" onclick="updateProduct(${index})" style="width:100%">💾 Сохранить</button>
+                <button class="btn" onclick="closeModal()" style="width:100%;margin-top:0.5rem">Отмена</button>
+            `);
+        }
+
+        function updateProduct(index) {
+            const p = siteData.products[index];
+            p.name = document.getElementById('pName')?.value || p.name;
+            p.category = document.getElementById('pCategory')?.value || p.category;
+            p.price = parseFloat(document.getElementById('pPrice')?.value) || p.price;
+            p.emoji = document.getElementById('pEmoji')?.value || p.emoji;
+            p.badge = document.getElementById('pBadge')?.value || '';
+            p.description = document.getElementById('pDesc')?.value || '';
+            p.fullDescription = document.getElementById('pFullDesc')?.value || '';
+            saveData();
+            closeModal();
+            showProducts();
+            showToast('✅ Товар обновлён');
+        }
+
+        function deleteProduct(index) {
+            if (confirm(`Удалить товар "${siteData.products[index].name}"?`)) {
+                siteData.products.splice(index, 1);
+                saveData();
+                showProducts();
+                showToast('🗑️ Товар удалён');
+            }
+        }
+
+        // ============ КАТЕГОРИИ ============
+        function showCategories() {
+            document.getElementById('toolbarTitle').textContent = '📁 Категории';
+            document.getElementById('contentArea').innerHTML = `
+                <div class="item-list">
+                    ${siteData.categories.map((c, i) => `
+                        <div class="item-card">
+                            <div class="item-icon">${c.icon}</div>
+                            <div class="item-info"><h4>${escapeHtml(c.name)}</h4></div>
+                            <div class="item-actions">
+                                <button class="icon-btn-sm" onclick="editCategory(${i})" title="Редактировать"><i class="fas fa-pen"></i></button>
+                                <button class="icon-btn-sm danger" onclick="deleteCategory(${i})" title="Удалить"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="btn btn-primary" onclick="addCategory()" style="margin-top:1rem">➕ Добавить категорию</button>
+            `;
+        }
+
+        function addCategory() {
+            openModal('➕ Новая категория', `
+                <div class="form-group"><label>Название</label><input type="text" id="catName" placeholder="Название"></div>
+                <div class="form-group"><label>Иконка (эмодзи)</label><input type="text" id="catIcon" placeholder="🌐" maxlength="2"></div>
+                <button class="btn btn-primary" onclick="saveCategory()" style="width:100%">Добавить</button>
+                <button class="btn" onclick="closeModal()" style="width:100%;margin-top:0.5rem">Отмена</button>
+            `);
+        }
+
+        function saveCategory() {
+            const name = document.getElementById('catName')?.value.trim();
+            const icon = document.getElementById('catIcon')?.value || '📦';
+            if (!name) { showToast('❌ Введите название'); return; }
+            siteData.categories.push({ key: 'cat_' + Date.now(), name, icon });
+            saveData();
+            closeModal();
+            showCategories();
+            showToast('✅ Категория добавлена');
+        }
+
+        function editCategory(index) {
+            const c = siteData.categories[index];
+            openModal('✏️ Редактировать категорию', `
+                <div class="form-group"><label>Название</label><input type="text" id="catName" value="${escapeHtml(c.name)}"></div>
+                <div class="form-group"><label>Иконка</label><input type="text" id="catIcon" value="${c.icon}" maxlength="2"></div>
+                <button class="btn btn-primary" onclick="updateCategory(${index})" style="width:100%">💾 Сохранить</button>
+                <button class="btn" onclick="closeModal()" style="width:100%;margin-top:0.5rem">Отмена</button>
+            `);
+        }
+
+        function updateCategory(index) {
+            const c = siteData.categories[index];
+            c.name = document.getElementById('catName')?.value || c.name;
+            c.icon = document.getElementById('catIcon')?.value || c.icon;
+            saveData();
+            closeModal();
+            showCategories();
+            showToast('✅ Категория обновлена');
+        }
+
+        function deleteCategory(index) {
+            if (confirm(`Удалить категорию "${siteData.categories[index].name}"?`)) {
+                siteData.categories.splice(index, 1);
+                saveData();
+                showCategories();
+                showToast('🗑️ Категория удалена');
+            }
+        }
+
+        // ============ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ============
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // ============ ИНИЦИАЛИЗАЦИЯ ============
+        loadData();
+        console.log('🚀 DigiMarket Admin Panel — готов к работе');
+        console.log('📦 Товаров:', siteData.products.length);
+        console.log('📁 Категорий:', siteData.categories.length);
+    </script>
+</body>
+</html>
